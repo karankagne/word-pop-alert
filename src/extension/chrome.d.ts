@@ -22,6 +22,11 @@ declare namespace chrome {
       function get(keys: string | string[] | object | null, callback: (items: { [key: string]: any }) => void): void;
       function set(items: object, callback?: () => void): void;
     }
+    
+    // Add the onChanged event
+    const onChanged: {
+      addListener(callback: (changes: { [key: string]: { oldValue?: any; newValue?: any } }, areaName: string) => void): void;
+    };
   }
   
   namespace notifications {
