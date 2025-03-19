@@ -12,8 +12,8 @@ console.log("Breakup Buddy: Content script loaded and running");
  * Scan the page for keywords
  */
 function scanPageForKeywords(): void {
-  // Get the text content of the page
-  const pageText = document.body.innerText;
+  // Get the text content of the page including title, URL and body
+  const pageText = document.title + ' ' + window.location.href + ' ' + document.body.innerText;
   
   // Find keywords in the page text
   const foundKeywords = findKeywordsInText(pageText);
@@ -35,24 +35,46 @@ function initializeContentScript(): void {
   
   // Load keywords and then scan the page
   loadKeywords().then(() => {
-    scanPageForKeywords();
+    // Add a small delay to ensure the page is fully loaded
+    setTimeout(() => {
+      scanPageForKeywords();
+    }, 500);
   });
   
   // Set up a MutationObserver to detect content changes
-  const observer = new MutationObserver(() => {
-    console.log("Breakup Buddy: Content changed, rescanning page");
-    scanPageForKeywords();
+  const observer = new MutationObserver((mutations) => {
+    let shouldRescan = false;
+    
+    // Check if any of the mutations affect text content
+    for (const mutation of mutations) {
+      if (
+        mutation.type === 'childList' || 
+        mutation.type === 'characterData' ||
+        (mutation.target && mutation.target.nodeType === Node.TEXT_NODE)
+      ) {
+        shouldRescan = true;
+        break;
+      }
+    }
+    
+    if (shouldRescan) {
+      console.log("Breakup Buddy: Content changed, rescanning page");
+      scanPageForKeywords();
+    }
   });
   
-  // Start observing
+  // Start observing with more specific options
   observer.observe(document.body, {
     childList: true,
     subtree: true,
-    characterData: true
+    characterData: true,
+    attributes: false,
+    attributeOldValue: false,
+    characterDataOldValue: false
   });
   
-  // Rescan periodically for dynamic content (every 2 seconds)
-  setInterval(scanPageForKeywords, 2000);
+  // Rescan periodically for dynamic content (every 3 seconds)
+  setInterval(scanPageForKeywords, 3000);
   
   // Synchronize with storage changes
   if (typeof chrome !== 'undefined' && chrome.storage) {
@@ -84,8 +106,11 @@ function setupEventListeners(): void {
     initializeContentScript();
   });
   
-  // Initialize immediately - this is important for pages that are already loaded
-  initializeContentScript();
+  // If document is already complete, initialize immediately
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log("Breakup Buddy: Document already loaded, initializing immediately");
+    initializeContentScript();
+  }
 }
 
 // Start the extension

@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash, Check, X } from "lucide-react";
+import { Pencil, Trash, Check, X, MessageSquare } from "lucide-react";
 import { useKeywords } from "@/contexts/KeywordContext";
 import { toast } from "sonner";
 
@@ -83,7 +83,7 @@ const KeywordItem: React.FC<KeywordItemProps> = ({ keyword, onEditMessage }) => 
               onClick={handleMessageEdit}
               title="Edit custom message"
             >
-              <Pencil className="h-3 w-3" />
+              <MessageSquare className="h-3 w-3" />
             </Button>
             <Button 
               size="icon" 

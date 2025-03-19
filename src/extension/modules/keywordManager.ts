@@ -106,25 +106,36 @@ export function findKeywordsInText(pageText: string): string[] {
   
   const lowerPageText = pageText.toLowerCase();
   const foundKeywords: string[] = [];
+  const now = Date.now();
   
   // Check each keyword
-  keywords.forEach(keyword => {
-    if (!keyword) return; // Skip empty keywords
+  for (const keyword of keywords) {
+    if (!keyword) continue; // Skip empty keywords
     
-    const lowercaseKeyword = keyword.toLowerCase();
+    const lowercaseKeyword = keyword.toLowerCase().trim();
     
-    if (lowerPageText.includes(lowercaseKeyword)) {
+    // Improved detection for both exact and partial matches
+    if (
+      lowerPageText.includes(lowercaseKeyword) || 
+      lowerPageText.includes(encodeURIComponent(lowercaseKeyword)) ||
+      new RegExp(`\\b${lowercaseKeyword}\\b`).test(lowerPageText)
+    ) {
       console.log(`Breakup Buddy: FOUND keyword "${keyword}" on page!`);
-      foundKeywords.push(keyword);
       
       // Check if this keyword was recently detected
-      const now = Date.now();
       if (!lastDetectedKeywords[keyword] || (now - lastDetectedKeywords[keyword] > COOLDOWN_PERIOD)) {
         // Update the last detection time
         lastDetectedKeywords[keyword] = now;
+        foundKeywords.push(keyword);
+      } else {
+        console.log(`Breakup Buddy: Keyword "${keyword}" detected, but within cooldown period`);
       }
     }
-  });
+  }
+  
+  if (foundKeywords.length > 0) {
+    console.log("Breakup Buddy: Found keywords after filtering cooldown:", foundKeywords);
+  }
   
   return foundKeywords;
 }
