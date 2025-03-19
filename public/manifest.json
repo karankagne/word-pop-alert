@@ -1,3 +1,4 @@
+
 {
   "manifest_version": 3,
   "name": "Breakup Buddy",
@@ -9,7 +10,7 @@
     "128": "icons/icon-128.svg"
   },
   "action": {
-    "default_popup": "index.html",
+    "default_popup": "index.html#/",
     "default_icon": {
       "16": "icons/icon-16.svg",
       "48": "icons/icon-48.svg",
