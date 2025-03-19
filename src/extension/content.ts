@@ -5,14 +5,16 @@
 let keywords: string[] = [];
 let customMessages: { [key: string]: string } = {};
 let lastDetectedKeywords: { [key: string]: number } = {};
+let userAvoidanceMessage: string = "Remember why you're here. Take a deep breath and focus on yourself.";
 const COOLDOWN_PERIOD = 30000; // 30 seconds cooldown for repeated notifications
 
-// Load keywords and custom messages from chrome storage
+// Load keywords, custom messages, and user avoidance message from chrome storage
 function loadKeywords() {
   try {
     // For development, we use localStorage
     const savedKeywords = localStorage.getItem("wordPopKeywords");
     const savedMessages = localStorage.getItem("wordPopCustomMessages");
+    const savedAvoidanceMessage = localStorage.getItem("wordPopAvoidanceMessage");
     
     if (savedKeywords) {
       keywords = JSON.parse(savedKeywords);
@@ -29,6 +31,14 @@ function loadKeywords() {
         customMessages[keyword] = `Remember: focusing on "${keyword}" right now might not help your healing process.`;
       });
       localStorage.setItem("wordPopCustomMessages", JSON.stringify(customMessages));
+    }
+    
+    if (savedAvoidanceMessage) {
+      userAvoidanceMessage = savedAvoidanceMessage;
+      console.log("Loaded avoidance message:", userAvoidanceMessage);
+    } else {
+      // Set default avoidance message if not set
+      localStorage.setItem("wordPopAvoidanceMessage", userAvoidanceMessage);
     }
   } catch (error) {
     console.error("Error loading keywords or custom messages:", error);
@@ -53,21 +63,15 @@ function scanPageForKeywords() {
         // Update the last detection time
         lastDetectedKeywords[keyword] = now;
         
-        // In a real extension, this would send a message to the background script
-        // chrome.runtime.sendMessage({ type: "WORD_DETECTED", keyword });
-        
-        // For demo purposes, we'll create our own full-screen notification
-        showFullScreenNotification(keyword);
+        // Show immediate avoidance screen
+        showAvoidanceScreen();
       }
     }
   });
 }
 
-// Create and show a full-screen notification
-function showFullScreenNotification(keyword: string) {
-  // Get custom message for this keyword or use default
-  const customMessage = customMessages[keyword] || `Detected "${keyword}" on this page. Remember to prioritize your healing.`;
-  
+// Create and show the immediate black screen with user's message
+function showAvoidanceScreen() {
   // Create overlay container
   const overlayElement = document.createElement("div");
   overlayElement.id = "wordpop-overlay";
@@ -76,40 +80,31 @@ function showFullScreenNotification(keyword: string) {
   overlayElement.style.left = "0";
   overlayElement.style.width = "100%";
   overlayElement.style.height = "100%";
-  overlayElement.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
-  overlayElement.style.backdropFilter = "blur(8px)";
+  overlayElement.style.backgroundColor = "rgba(0, 0, 0, 0.95)";
   overlayElement.style.zIndex = "2147483647"; // Max z-index
   overlayElement.style.display = "flex";
   overlayElement.style.flexDirection = "column";
   overlayElement.style.justifyContent = "center";
   overlayElement.style.alignItems = "center";
   overlayElement.style.padding = "2rem";
-  overlayElement.style.animation = "fadeIn 0.3s ease-out forwards";
+  overlayElement.style.animation = "fadeIn 0.2s ease-out forwards";
   
-  // Create notification content
-  const contentElement = document.createElement("div");
-  contentElement.style.maxWidth = "600px";
-  contentElement.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
-  contentElement.style.borderRadius = "16px";
-  contentElement.style.padding = "2rem";
-  contentElement.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)";
-  contentElement.style.textAlign = "center";
-  contentElement.style.color = "white";
+  // Create message content
+  const messageElement = document.createElement("div");
+  messageElement.style.maxWidth = "600px";
+  messageElement.style.textAlign = "center";
+  messageElement.style.color = "white";
   
-  contentElement.innerHTML = `
-    <div style="margin-bottom: 1rem; display: flex; justify-content: center; align-items: center;">
-      <div style="height: 12px; width: 12px; border-radius: 50%; background-color: #ec4899; margin-right: 12px; animation: pulse 1.5s infinite;"></div>
-      <h2 style="font-size: 24px; font-weight: 600; margin: 0;">Breakup Buddy</h2>
-    </div>
-    <h3 style="font-size: 28px; font-weight: 700; margin: 1rem 0; color: #f0f0f0;">${keyword}</h3>
-    <p style="font-size: 18px; margin: 1rem 0 2rem; line-height: 1.6;">${customMessage}</p>
+  messageElement.innerHTML = `
+    <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 1.5rem; color: #f0f0f0;">Stop</h2>
+    <p style="font-size: 20px; margin: 1rem 0 2rem; line-height: 1.6;">${userAvoidanceMessage}</p>
     <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; margin: 0 auto;">
-      <button id="close-wordpop" style="background-color: rgba(236, 72, 153, 0.8); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Continue Anyway</button>
-      <button id="leave-page" style="background-color: rgba(255, 255, 255, 0.15); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Leave This Page</button>
+      <button id="leave-page" style="background-color: rgba(236, 72, 153, 0.8); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Leave This Page</button>
+      <button id="close-wordpop" style="background-color: rgba(255, 255, 255, 0.15); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Continue Anyway</button>
     </div>
   `;
   
-  overlayElement.appendChild(contentElement);
+  overlayElement.appendChild(messageElement);
   
   // Add styles for animations
   const styleElement = document.createElement("style");
@@ -122,16 +117,12 @@ function showFullScreenNotification(keyword: string) {
       from { opacity: 1; }
       to { opacity: 0; }
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.1); }
-    }
     #close-wordpop:hover {
-      background-color: rgba(236, 72, 153, 1);
+      background-color: rgba(255, 255, 255, 0.25);
       transform: translateY(-2px);
     }
     #leave-page:hover {
-      background-color: rgba(255, 255, 255, 0.25);
+      background-color: rgba(236, 72, 153, 1);
       transform: translateY(-2px);
     }
   `;

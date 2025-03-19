@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import KeywordManager from "@/components/KeywordManager";
 import NotificationDemo from "@/components/NotificationDemo";
 import ExtensionInfo from "@/components/ExtensionInfo";
+import AvoidanceMessageSetting from "@/components/AvoidanceMessageSetting";
 import { Separator } from "@/components/ui/separator";
 import { HeartCrack } from "lucide-react";
 
@@ -44,6 +45,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <div className="md:col-span-7 space-y-6">
             <KeywordManager keywords={keywords} setKeywords={setKeywords} />
+            <AvoidanceMessageSetting />
           </div>
           
           <div className="md:col-span-5 space-y-6">
