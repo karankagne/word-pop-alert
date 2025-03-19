@@ -12,6 +12,8 @@ export function showAvoidanceScreen(
   avoidanceMessage: string,
   onClose?: () => void
 ): void {
+  console.log("Breakup Buddy: Showing avoidance screen", { detectedKeywords, avoidanceMessage });
+  
   // Remove any existing overlay first
   const existingOverlay = document.getElementById("wordpop-overlay");
   if (existingOverlay) {
@@ -123,28 +125,32 @@ function addOverlayStyles(): void {
 function attachOverlayEventListeners(overlayElement: HTMLElement, onClose?: () => void): void {
   // Add close handler
   const closeButton = document.getElementById("close-wordpop");
-  closeButton?.addEventListener("click", () => {
-    overlayElement.style.animation = "fadeOut 0.3s ease-out forwards";
-    setTimeout(() => {
-      if (document.body.contains(overlayElement)) {
-        document.body.removeChild(overlayElement);
-      }
+  if (closeButton) {
+    closeButton.addEventListener("click", () => {
+      overlayElement.style.animation = "fadeOut 0.3s ease-out forwards";
+      setTimeout(() => {
+        if (document.body.contains(overlayElement)) {
+          document.body.removeChild(overlayElement);
+        }
+        // Execute onClose callback if provided
+        if (onClose) {
+          onClose();
+        }
+      }, 300);
+    });
+  }
+  
+  // Add leave page handler
+  const leaveButton = document.getElementById("leave-page");
+  if (leaveButton) {
+    leaveButton.addEventListener("click", () => {
       // Execute onClose callback if provided
       if (onClose) {
         onClose();
       }
-    }, 300);
-  });
-  
-  // Add leave page handler
-  const leaveButton = document.getElementById("leave-page");
-  leaveButton?.addEventListener("click", () => {
-    // Execute onClose callback if provided
-    if (onClose) {
-      onClose();
-    }
-    window.history.back(); // Go back to previous page
-  });
+      window.history.back(); // Go back to previous page
+    });
+  }
 }
 
 /**

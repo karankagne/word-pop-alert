@@ -10,6 +10,7 @@ console.log("Breakup Buddy: Content script loaded and running");
 
 // Add global state to track if we're currently showing the overlay
 let isOverlayShowing = false;
+let keywords: string[] = [];
 
 /**
  * Scan the page for keywords
@@ -17,12 +18,19 @@ let isOverlayShowing = false;
 function scanPageForKeywords(): void {
   // Don't scan if the overlay is already showing
   if (isOverlayShowing) {
+    console.log("Breakup Buddy: Overlay already showing, skipping scan");
     return;
   }
   
   // Get the text content of the page including title, URL and body
   const pageText = document.title + ' ' + window.location.href + ' ' + document.body.innerText;
   
+  // Make sure we have keywords to check against
+  if (!keywords || keywords.length === 0) {
+    console.log("Breakup Buddy: No keywords loaded yet, skipping scan");
+    return;
+  }
+
   // Find keywords in the page text
   const foundKeywords = findKeywordsInText(pageText);
   
@@ -33,7 +41,10 @@ function scanPageForKeywords(): void {
     showAvoidanceScreen(
       foundKeywords, 
       getAvoidanceMessage(),
-      () => { isOverlayShowing = false; } // callback when overlay closes
+      () => { 
+        console.log("Breakup Buddy: Overlay closed");
+        isOverlayShowing = false; 
+      }
     );
   } else {
     console.log("Breakup Buddy: No keywords found on this page");
@@ -47,11 +58,16 @@ function initializeContentScript(): void {
   console.log("Breakup Buddy: Initializing content script");
   
   // Load keywords and then scan the page
-  loadKeywords().then(() => {
+  loadKeywords().then((loadedKeywords) => {
+    console.log("Breakup Buddy: Keywords loaded:", loadedKeywords);
+    keywords = loadedKeywords;
+    
     // Add a small delay to ensure the page is fully loaded
     setTimeout(() => {
       scanPageForKeywords();
     }, 500);
+  }).catch(error => {
+    console.error("Breakup Buddy: Error loading keywords:", error);
   });
   
   // Set up a MutationObserver to detect content changes
@@ -70,7 +86,7 @@ function initializeContentScript(): void {
       }
     }
     
-    if (shouldRescan) {
+    if (shouldRescan && !isOverlayShowing) {
       console.log("Breakup Buddy: Content changed, rescanning page");
       scanPageForKeywords();
     }
@@ -87,15 +103,25 @@ function initializeContentScript(): void {
   });
   
   // Rescan periodically for dynamic content (every 3 seconds)
-  setInterval(scanPageForKeywords, 3000);
+  setInterval(() => {
+    if (!isOverlayShowing) {
+      scanPageForKeywords();
+    }
+  }, 3000);
   
   // Synchronize with storage changes
   if (typeof chrome !== 'undefined' && chrome.storage) {
     chrome.storage.onChanged.addListener((changes) => {
-      handleStorageChanges(changes);
+      console.log("Breakup Buddy: Storage changed", changes);
+      const updatedKeywords = handleStorageChanges(changes);
+      if (updatedKeywords) {
+        keywords = updatedKeywords;
+      }
       
       // Re-scan the page with the updated keywords
-      scanPageForKeywords();
+      if (!isOverlayShowing) {
+        scanPageForKeywords();
+      }
     });
   }
   
@@ -104,11 +130,15 @@ function initializeContentScript(): void {
     console.log('Breakup Buddy: Development mode detected - adding test functionality');
     
     addTestButton(() => {
+      console.log("Breakup Buddy: Test button clicked");
       isOverlayShowing = true;
       showAvoidanceScreen(
         ['test keyword'], 
         getAvoidanceMessage(),
-        () => { isOverlayShowing = false; }
+        () => { 
+          console.log("Breakup Buddy: Test overlay closed");
+          isOverlayShowing = false; 
+        }
       );
     });
   }

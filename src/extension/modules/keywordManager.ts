@@ -11,7 +11,7 @@ const COOLDOWN_PERIOD = 10000; // Reduced to 10 seconds for better responsivenes
 /**
  * Load keywords, custom messages, and user avoidance message from storage
  */
-export function loadKeywords(): Promise<void> {
+export function loadKeywords(): Promise<string[]> {
   console.log("Breakup Buddy: Loading keywords and messages");
   
   return new Promise((resolve) => {
@@ -39,12 +39,12 @@ export function loadKeywords(): Promise<void> {
           console.log("Breakup Buddy: Loaded avoidance message from chrome storage:", userAvoidanceMessage);
         }
         
-        resolve();
+        resolve(keywords);
       });
     } else {
       // For development, we use localStorage
       fallbackToLocalStorage();
-      resolve();
+      resolve(keywords);
     }
   });
 }
@@ -76,6 +76,11 @@ function fallbackToLocalStorage(): void {
       console.error("Breakup Buddy: Error parsing keywords from localStorage", error);
       keywords = [];
     }
+  } else {
+    // If no keywords are found, set an example keyword for testing
+    keywords = ["example"];
+    localStorage.setItem("wordPopKeywords", JSON.stringify(keywords));
+    console.log("Breakup Buddy: No keywords found, setting example keyword");
   }
   
   if (savedMessages) {
@@ -154,12 +159,15 @@ export function findKeywordsInText(pageText: string): string[] {
  * Update keywords when storage changes
  * @param changes The changes object from chrome.storage.onChanged
  */
-export function handleStorageChanges(changes: { [key: string]: { oldValue?: any; newValue?: any } }): void {
+export function handleStorageChanges(changes: { [key: string]: { oldValue?: any; newValue?: any } }): string[] | null {
   console.log("Breakup Buddy: Storage changed", changes);
+  
+  let keywordsUpdated = false;
   
   if (changes.wordPopKeywords) {
     keywords = changes.wordPopKeywords.newValue || [];
     console.log("Breakup Buddy: Updated keywords from storage change:", keywords);
+    keywordsUpdated = true;
   }
   
   if (changes.wordPopCustomMessages) {
@@ -169,6 +177,8 @@ export function handleStorageChanges(changes: { [key: string]: { oldValue?: any;
   if (changes.wordPopAvoidanceMessage) {
     userAvoidanceMessage = changes.wordPopAvoidanceMessage.newValue || "";
   }
+  
+  return keywordsUpdated ? keywords : null;
 }
 
 /**
@@ -186,8 +196,10 @@ export function getCustomMessage(keyword: string): string {
   return customMessages[keyword] || `Remember: focusing on "${keyword}" right now might not help your healing process.`;
 }
 
-// Force refresh keywords from storage
-export function refreshKeywords(): Promise<void> {
+/**
+ * Force refresh keywords from storage
+ */
+export function refreshKeywords(): Promise<string[]> {
   console.log("Breakup Buddy: Force refreshing keywords");
   lastDetectedKeywords = {}; // Reset cooldown
   return loadKeywords();
