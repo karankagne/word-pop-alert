@@ -2,10 +2,10 @@
 // Type definitions for Chrome extension API
 declare namespace chrome {
   namespace runtime {
-    function onInstalled: {
+    const onInstalled: {
       addListener(callback: () => void): void;
     };
-    function onMessage: {
+    const onMessage: {
       addListener(
         callback: (
           message: any,
