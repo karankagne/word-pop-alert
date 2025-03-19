@@ -1,13 +1,11 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const AvoidanceMessageSetting = () => {
   const [message, setMessage] = useState("");
-  const { toast } = useToast();
 
   useEffect(() => {
     // Load saved avoidance message
@@ -27,32 +25,29 @@ const AvoidanceMessageSetting = () => {
     localStorage.setItem("wordPopAvoidanceMessage", message);
     
     // Show success toast
-    toast({
-      title: "Message saved",
-      description: "Your personal avoidance message has been updated.",
-    });
+    toast.success("Personal message saved");
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Your Avoidance Message</CardTitle>
-        <CardDescription>
-          This message will appear when you visit a page containing your specified keywords.
-          Make it personal and effective for your healing journey.
+    <Card className="shadow-none border-none">
+      <CardHeader className="p-3 pb-2">
+        <CardTitle className="text-base">Your Avoidance Message</CardTitle>
+        <CardDescription className="text-xs">
+          Shown when a filtered keyword is detected
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="p-3 pt-0">
+        <div className="space-y-2">
           <Textarea 
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Enter a personal message to help you avoid temptation..."
-            className="min-h-[120px]"
+            placeholder="Enter a personal message..."
+            className="min-h-[80px] text-sm"
           />
           <Button 
             onClick={handleSaveMessage}
-            className="w-full"
+            className="w-full h-8 text-sm"
+            size="sm"
           >
             Save Message
           </Button>

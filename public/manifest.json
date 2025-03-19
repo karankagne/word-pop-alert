@@ -1,20 +1,19 @@
-
 {
   "manifest_version": 3,
   "name": "Breakup Buddy",
   "version": "1.0.0",
   "description": "Helps you avoid content about your ex during the healing process",
   "icons": {
-    "16": "icon-16.png",
-    "48": "icon-48.png",
-    "128": "icon-128.png"
+    "16": "icons/icon-16.svg",
+    "48": "icons/icon-48.svg",
+    "128": "icons/icon-128.svg"
   },
   "action": {
     "default_popup": "index.html",
     "default_icon": {
-      "16": "icon-16.png",
-      "48": "icon-48.png",
-      "128": "icon-128.png"
+      "16": "icons/icon-16.svg",
+      "48": "icons/icon-48.svg",
+      "128": "icons/icon-128.svg"
     }
   },
   "permissions": [

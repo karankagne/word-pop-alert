@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "package": "npm run build && cd dist && zip -r ../extension.zip *",
     "lint": "eslint .",
     "preview": "vite preview"
   },

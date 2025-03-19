@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -147,42 +146,43 @@ const KeywordManager: React.FC<KeywordManagerProps> = ({ keywords, setKeywords }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
+    <Card className="shadow-none border-none">
+      <CardHeader className="p-3 pb-2">
+        <CardTitle className="text-base flex items-center">
           Keywords
-          <Badge className="ml-2 bg-primary/20 text-primary" variant="secondary">
+          <Badge className="ml-2 bg-primary/20 text-primary text-xs" variant="secondary">
             {keywords.length}
           </Badge>
         </CardTitle>
-        <CardDescription>
-          Add keywords you want to be notified about when they appear on websites
+        <CardDescription className="text-xs">
+          Add words you want to filter out
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="flex space-x-2">
+      <CardContent className="space-y-3 p-3 pt-0">
+        <div className="flex space-x-1">
           <Input
             placeholder="Enter a keyword..."
             value={newKeyword}
             onChange={(e) => setNewKeyword(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
+            className="h-8 text-sm"
           />
-          <Button onClick={handleAddKeyword} size="icon">
+          <Button onClick={handleAddKeyword} size="sm" className="px-2">
             <PlusCircle className="h-4 w-4" />
           </Button>
         </div>
         
-        <div className="space-y-2 mt-4">
+        <div className="space-y-1 mt-2 max-h-[180px] overflow-y-auto">
           {keywords.length === 0 ? (
-            <div className="text-center py-4 text-muted-foreground">
+            <div className="text-center py-2 text-xs text-muted-foreground">
               No keywords added yet
             </div>
           ) : (
             keywords.map((keyword) => (
               <div 
                 key={keyword} 
-                className="flex items-center justify-between p-3 rounded-lg border group hover:bg-accent/50"
+                className="flex items-center justify-between p-2 rounded-lg border group hover:bg-accent/50 text-sm"
               >
                 {editingKeyword === keyword ? (
                   <Input
@@ -190,20 +190,21 @@ const KeywordManager: React.FC<KeywordManagerProps> = ({ keywords, setKeywords }
                     onChange={(e) => setEditingKeyword(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleUpdateKeyword(keyword)}
                     autoFocus
-                    className="flex-1 mr-2"
+                    className="flex-1 mr-1 h-7 text-sm"
                   />
                 ) : (
-                  <span className="font-medium">{keyword}</span>
+                  <span className="font-medium text-sm">{keyword}</span>
                 )}
                 
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center">
                   {editingKeyword === keyword ? (
                     <Button 
                       size="icon" 
                       variant="ghost" 
                       onClick={() => handleUpdateKeyword(keyword)}
+                      className="h-6 w-6"
                     >
-                      <Save className="h-4 w-4" />
+                      <Save className="h-3 w-3" />
                     </Button>
                   ) : (
                     <>
@@ -212,31 +213,37 @@ const KeywordManager: React.FC<KeywordManagerProps> = ({ keywords, setKeywords }
                         variant="ghost" 
                         onClick={() => openMessageDialog(keyword)}
                         title="Edit custom message"
+                        className="h-6 w-6"
                       >
-                        <MessageSquare className="h-4 w-4" />
+                        <MessageSquare className="h-3 w-3" />
                       </Button>
                       <Button 
                         size="icon" 
                         variant="ghost" 
                         onClick={() => setEditingKeyword(keyword)}
                         title="Edit keyword"
+                        className="h-6 w-6"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3 w-3" />
                       </Button>
                     </>
                   )}
                   
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="text-destructive hover:text-destructive h-6 w-6"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="max-w-[90vw]">
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>Remove keyword?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will remove "{keyword}" from your keywords list.
+                          This will remove "{keyword}" from your list.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -253,29 +260,24 @@ const KeywordManager: React.FC<KeywordManagerProps> = ({ keywords, setKeywords }
           )}
         </div>
       </CardContent>
-      
-      <CardFooter className="flex justify-between text-sm text-muted-foreground">
-        <p>Click on <MessageSquare className="inline h-3 w-3" /> to customize alert messages</p>
-      </CardFooter>
 
-      {/* Custom Message Dialog */}
       <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[90vw]">
           <DialogHeader>
-            <DialogTitle>Customize Alert Message</DialogTitle>
+            <DialogTitle>Custom Message for "{selectedKeyword}"</DialogTitle>
             <DialogDescription>
-              This message will be shown when "{selectedKeyword}" is detected
+              This message will be shown when this keyword is detected.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="custom-message">Alert Message</Label>
+          <div className="grid gap-4 py-3">
+            <div className="grid gap-2">
+              <Label htmlFor="message">Message</Label>
               <Textarea
-                id="custom-message"
+                id="message"
+                rows={4}
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
-                rows={4}
-                placeholder="Enter your custom alert message..."
+                placeholder="Enter custom message for this keyword..."
               />
             </div>
           </div>

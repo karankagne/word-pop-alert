@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -86,6 +85,8 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    min-width: 400px; /* Minimum width for extension popup */
+    width: 400px; /* Fixed width for extension popup */
   }
 
   .glassmorphism {
@@ -112,4 +113,22 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Extension specific styles */
+html {
+  min-width: 400px;
+  width: 400px;
+}
+
+#root {
+  min-width: 400px;
+  width: 100%;
+}
+
+/* Adjust layout for extension popup */
+.container.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  width: 100%;
 }
