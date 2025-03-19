@@ -18,10 +18,9 @@ const KeywordItem: React.FC<KeywordItemProps> = ({ keyword, onEditMessage }) => 
   const handleEditSave = () => {
     // Only update if the keyword has changed
     if (editValue !== keyword) {
-      const success = updateKeyword(keyword, editValue);
-      if (success) {
-        setIsEditing(false);
-      }
+      updateKeyword(keyword, editValue);
+      // We'll check if the values are the same in the context function instead
+      setIsEditing(false);
     } else {
       setIsEditing(false);
     }
