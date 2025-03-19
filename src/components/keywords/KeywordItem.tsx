@@ -1,10 +1,9 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MessageSquare, Edit, Save, Trash2 } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Pencil, Trash, Check, X } from "lucide-react";
 import { useKeywords } from "@/contexts/KeywordContext";
+import { toast } from "sonner";
 
 interface KeywordItemProps {
   keyword: string;
@@ -12,53 +11,68 @@ interface KeywordItemProps {
 }
 
 const KeywordItem: React.FC<KeywordItemProps> = ({ keyword, onEditMessage }) => {
-  const { updateKeyword, removeKeyword } = useKeywords();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedKeyword, setEditedKeyword] = useState(keyword);
+  const [editValue, setEditValue] = useState(keyword);
+  const { removeKeyword, updateKeyword } = useKeywords();
 
-  const handleSave = () => {
-    if (updateKeyword(keyword, editedKeyword)) {
+  const handleEditSave = () => {
+    // Only update if the keyword has changed
+    if (editValue !== keyword) {
+      const success = updateKeyword(keyword, editValue);
+      if (success) {
+        setIsEditing(false);
+      }
+    } else {
       setIsEditing(false);
     }
   };
 
   const handleCancel = () => {
-    setEditedKeyword(keyword);
+    setEditValue(keyword);
     setIsEditing(false);
   };
 
+  const handleRemove = () => {
+    removeKeyword(keyword);
+    toast.success(`Removed "${keyword}"`);
+  };
+
+  const handleMessageEdit = () => {
+    onEditMessage(keyword);
+  };
+
   return (
-    <div className="flex items-center justify-between p-2 rounded-lg border group hover:bg-accent/50 text-sm">
+    <div className="p-2 bg-muted/50 rounded-md flex items-center justify-between gap-2 group">
       {isEditing ? (
-        <Input
-          value={editedKeyword}
-          onChange={(e) => setEditedKeyword(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+        <input
+          className="flex-1 bg-background border border-input px-2 py-1 text-xs rounded-sm"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
           autoFocus
-          className="flex-1 mr-1 h-7 text-sm"
+          onKeyDown={(e) => e.key === 'Enter' && handleEditSave()}
         />
       ) : (
-        <span className="font-medium text-sm">{keyword}</span>
+        <div className="flex-1 text-sm truncate">{keyword}</div>
       )}
       
-      <div className="flex items-center">
+      <div className="flex gap-1">
         {isEditing ? (
           <>
             <Button 
               size="icon" 
               variant="ghost" 
-              onClick={handleSave}
-              className="h-6 w-6"
+              className="h-6 w-6" 
+              onClick={handleEditSave}
             >
-              <Save className="h-3 w-3" />
+              <Check className="h-3 w-3" />
             </Button>
             <Button 
               size="icon" 
               variant="ghost" 
+              className="h-6 w-6" 
               onClick={handleCancel}
-              className="h-6 w-6"
             >
-              <Trash2 className="h-3 w-3" />
+              <X className="h-3 w-3" />
             </Button>
           </>
         ) : (
@@ -66,49 +80,32 @@ const KeywordItem: React.FC<KeywordItemProps> = ({ keyword, onEditMessage }) => 
             <Button 
               size="icon" 
               variant="ghost" 
-              onClick={() => onEditMessage(keyword)}
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" 
+              onClick={handleMessageEdit}
               title="Edit custom message"
-              className="h-6 w-6"
             >
-              <MessageSquare className="h-3 w-3" />
+              <Pencil className="h-3 w-3" />
             </Button>
             <Button 
               size="icon" 
               variant="ghost" 
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" 
               onClick={() => setIsEditing(true)}
-              title="Edit keyword"
-              className="h-6 w-6"
+              title="Rename keyword"
             >
-              <Edit className="h-3 w-3" />
+              <Pencil className="h-3 w-3" />
+            </Button>
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive" 
+              onClick={handleRemove}
+              title="Delete keyword"
+            >
+              <Trash className="h-3 w-3" />
             </Button>
           </>
         )}
-        
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="text-destructive hover:text-destructive h-6 w-6"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-[90vw]">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Remove keyword?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will remove "{keyword}" from your list.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => removeKeyword(keyword)}>
-                Remove
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );

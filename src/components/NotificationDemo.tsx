@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { HeartCrack } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import KeywordSelector from "./notifications/KeywordSelector";
+import TestAlertButton from "./notifications/TestAlertButton";
+import NotificationOverlay from "./notifications/NotificationOverlay";
 
 interface NotificationDemoProps {
   keywords: string[];
@@ -52,74 +52,26 @@ const NotificationDemo: React.FC<NotificationDemoProps> = ({ keywords }) => {
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="space-y-1">
-              <Label htmlFor="keyword-select" className="text-xs">Select keyword to test</Label>
-              <Select
-                value={selectedKeyword}
-                onValueChange={setSelectedKeyword}
-              >
-                <SelectTrigger id="keyword-select" className="h-8 text-xs">
-                  <SelectValue placeholder="Select a keyword" />
-                </SelectTrigger>
-                <SelectContent>
-                  {keywords.map((keyword) => (
-                    <SelectItem key={keyword} value={keyword} className="text-sm">
-                      {keyword}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <KeywordSelector 
+              keywords={keywords}
+              selectedKeyword={selectedKeyword}
+              onKeywordChange={setSelectedKeyword}
+            />
 
-            <Button 
-              className="w-full h-8 text-sm bg-pink-500 hover:bg-pink-600" 
+            <TestAlertButton 
               onClick={handleTest}
               disabled={!selectedKeyword}
-              size="sm"
-            >
-              Test Alert
-            </Button>
+            />
           </div>
         )}
       </CardContent>
 
-      {/* Full-screen notification overlay dialog */}
-      <Dialog open={showOverlay} onOpenChange={setShowOverlay}>
-        <DialogContent className="max-w-[90vw] h-auto max-h-[80vh] p-0 bg-transparent border-0 shadow-none">
-          <div className="flex flex-col items-center justify-center w-full h-full bg-black/90 backdrop-blur-md rounded-lg p-4">
-            <div className="w-full bg-background/10 border border-white/10 rounded-xl p-4 text-center">
-              <div className="mb-2 flex justify-center items-center">
-                <div className="h-2 w-2 rounded-full bg-pink-500 mr-2 animate-pulse"></div>
-                <h2 className="text-lg font-semibold text-white">Breakup Buddy</h2>
-              </div>
-              
-              <h3 className="text-xl font-bold my-3 text-white">{selectedKeyword}</h3>
-              
-              <p className="text-sm mb-4 text-white/90">
-                {customMessages[selectedKeyword] || `Remember: focusing on "${selectedKeyword}" right now might not help your healing process.`}
-              </p>
-              
-              <div className="flex flex-col gap-2 w-full max-w-xs mx-auto">
-                <Button 
-                  onClick={() => setShowOverlay(false)}
-                  className="bg-pink-500/80 hover:bg-pink-500 text-white text-sm"
-                  size="sm"
-                >
-                  Continue Anyway
-                </Button>
-                <Button 
-                  onClick={() => setShowOverlay(false)}
-                  variant="outline"
-                  className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-sm"
-                  size="sm"
-                >
-                  Leave This Page
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <NotificationOverlay
+        open={showOverlay}
+        onOpenChange={setShowOverlay}
+        selectedKeyword={selectedKeyword}
+        customMessage={customMessages[selectedKeyword] || ""}
+      />
     </Card>
   );
 };
