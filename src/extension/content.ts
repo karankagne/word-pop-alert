@@ -8,46 +8,97 @@ let lastDetectedKeywords: { [key: string]: number } = {};
 let userAvoidanceMessage: string = "Remember why you're here. Take a deep breath and focus on yourself.";
 const COOLDOWN_PERIOD = 30000; // 30 seconds cooldown for repeated notifications
 
+// Log for debugging
+console.log("Breakup Buddy: Content script loaded and running");
+
 // Load keywords, custom messages, and user avoidance message from chrome storage
 function loadKeywords() {
   try {
-    // For development, we use localStorage
-    const savedKeywords = localStorage.getItem("wordPopKeywords");
-    const savedMessages = localStorage.getItem("wordPopCustomMessages");
-    const savedAvoidanceMessage = localStorage.getItem("wordPopAvoidanceMessage");
+    console.log("Breakup Buddy: Loading keywords and messages");
     
-    if (savedKeywords) {
-      keywords = JSON.parse(savedKeywords);
-      console.log("Loaded keywords:", keywords);
-    }
-    
-    if (savedMessages) {
-      customMessages = JSON.parse(savedMessages);
-      console.log("Loaded custom messages:", customMessages);
-    } else {
-      // Initialize default custom messages if not set
-      customMessages = {};
-      keywords.forEach(keyword => {
-        customMessages[keyword] = `Remember: focusing on "${keyword}" right now might not help your healing process.`;
+    // In production environment, we should use chrome.storage.sync.get
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.sync.get(['wordPopKeywords', 'wordPopCustomMessages', 'wordPopAvoidanceMessage'], (result) => {
+        if (result.wordPopKeywords) {
+          keywords = result.wordPopKeywords;
+          console.log("Breakup Buddy: Loaded keywords from chrome storage:", keywords);
+        } else {
+          // Try fallback to localStorage
+          fallbackToLocalStorage();
+        }
+        
+        if (result.wordPopCustomMessages) {
+          customMessages = result.wordPopCustomMessages;
+          console.log("Breakup Buddy: Loaded custom messages from chrome storage:", customMessages);
+        } else {
+          // Initialize default custom messages if not set
+          customMessages = {};
+          keywords.forEach(keyword => {
+            customMessages[keyword] = `Remember: focusing on "${keyword}" right now might not help your healing process.`;
+          });
+        }
+        
+        if (result.wordPopAvoidanceMessage) {
+          userAvoidanceMessage = result.wordPopAvoidanceMessage;
+          console.log("Breakup Buddy: Loaded avoidance message from chrome storage:", userAvoidanceMessage);
+        }
+        
+        // Immediately scan the page after loading keywords
+        scanPageForKeywords();
       });
-      localStorage.setItem("wordPopCustomMessages", JSON.stringify(customMessages));
-    }
-    
-    if (savedAvoidanceMessage) {
-      userAvoidanceMessage = savedAvoidanceMessage;
-      console.log("Loaded avoidance message:", userAvoidanceMessage);
     } else {
-      // Set default avoidance message if not set
-      localStorage.setItem("wordPopAvoidanceMessage", userAvoidanceMessage);
+      // For development, we use localStorage
+      fallbackToLocalStorage();
     }
   } catch (error) {
-    console.error("Error loading keywords or custom messages:", error);
+    console.error("Breakup Buddy: Error loading keywords or custom messages:", error);
+    fallbackToLocalStorage();
   }
+}
+
+function fallbackToLocalStorage() {
+  // Fallback to localStorage for development or if chrome.storage fails
+  const savedKeywords = localStorage.getItem("wordPopKeywords");
+  const savedMessages = localStorage.getItem("wordPopCustomMessages");
+  const savedAvoidanceMessage = localStorage.getItem("wordPopAvoidanceMessage");
+  
+  if (savedKeywords) {
+    keywords = JSON.parse(savedKeywords);
+    console.log("Breakup Buddy: Loaded keywords from localStorage:", keywords);
+  }
+  
+  if (savedMessages) {
+    customMessages = JSON.parse(savedMessages);
+    console.log("Breakup Buddy: Loaded custom messages from localStorage:", customMessages);
+  } else {
+    // Initialize default custom messages if not set
+    customMessages = {};
+    keywords.forEach(keyword => {
+      customMessages[keyword] = `Remember: focusing on "${keyword}" right now might not help your healing process.`;
+    });
+    localStorage.setItem("wordPopCustomMessages", JSON.stringify(customMessages));
+  }
+  
+  if (savedAvoidanceMessage) {
+    userAvoidanceMessage = savedAvoidanceMessage;
+    console.log("Breakup Buddy: Loaded avoidance message from localStorage:", userAvoidanceMessage);
+  } else {
+    // Set default avoidance message if not set
+    localStorage.setItem("wordPopAvoidanceMessage", userAvoidanceMessage);
+  }
+  
+  // Immediately scan the page after loading keywords
+  scanPageForKeywords();
 }
 
 // Check if the page contains any of the keywords
 function scanPageForKeywords() {
-  if (keywords.length === 0) return;
+  if (keywords.length === 0) {
+    console.log("Breakup Buddy: No keywords to scan for");
+    return;
+  }
+  
+  console.log("Breakup Buddy: Scanning page for keywords:", keywords);
   
   // Get the text content of the page
   const pageText = document.body.innerText.toLowerCase();
@@ -55,9 +106,13 @@ function scanPageForKeywords() {
   
   // Check each keyword
   keywords.forEach(keyword => {
+    if (!keyword) return; // Skip empty keywords
+    
     const lowercaseKeyword = keyword.toLowerCase();
+    console.log(`Breakup Buddy: Checking for keyword "${lowercaseKeyword}"`);
     
     if (pageText.includes(lowercaseKeyword)) {
+      console.log(`Breakup Buddy: FOUND keyword "${keyword}" on page!`);
       foundKeywords.push(keyword);
       
       // Check if this keyword was recently detected
@@ -71,7 +126,10 @@ function scanPageForKeywords() {
   
   // If we found keywords, show the avoidance screen
   if (foundKeywords.length > 0) {
+    console.log("Breakup Buddy: Showing avoidance screen for keywords:", foundKeywords);
     showAvoidanceScreen(foundKeywords);
+  } else {
+    console.log("Breakup Buddy: No keywords found on this page");
   }
 }
 
@@ -180,14 +238,19 @@ function showAvoidanceScreen(detectedKeywords: string[] = []) {
   });
 }
 
-// Initialize
-loadKeywords();
+// Make sure we load keywords ASAP
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("Breakup Buddy: DOMContentLoaded event fired");
+  loadKeywords();
+});
 
-// Scan the page initially and on content changes
-scanPageForKeywords();
+// Initialize immediately - this is important for pages that are already loaded
+console.log("Breakup Buddy: Initializing content script");
+loadKeywords();
 
 // Set up a MutationObserver to detect content changes
 const observer = new MutationObserver(() => {
+  console.log("Breakup Buddy: Content changed, rescanning page");
   scanPageForKeywords();
 });
 
@@ -198,8 +261,30 @@ observer.observe(document.body, {
   characterData: true
 });
 
-// Rescan periodically for dynamic content (every 3 seconds instead of 5)
-setInterval(scanPageForKeywords, 3000);
+// Rescan periodically for dynamic content (every 2 seconds)
+setInterval(scanPageForKeywords, 2000);
+
+// Synchronize with storage changes
+if (typeof chrome !== 'undefined' && chrome.storage) {
+  chrome.storage.onChanged.addListener((changes) => {
+    console.log("Breakup Buddy: Storage changed", changes);
+    if (changes.wordPopKeywords) {
+      keywords = changes.wordPopKeywords.newValue || [];
+      console.log("Breakup Buddy: Updated keywords from storage change:", keywords);
+    }
+    
+    if (changes.wordPopCustomMessages) {
+      customMessages = changes.wordPopCustomMessages.newValue || {};
+    }
+    
+    if (changes.wordPopAvoidanceMessage) {
+      userAvoidanceMessage = changes.wordPopAvoidanceMessage.newValue || "";
+    }
+    
+    // Re-scan the page with the updated keywords
+    scanPageForKeywords();
+  });
+}
 
 // Add some test code for development environments to test the popup
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
