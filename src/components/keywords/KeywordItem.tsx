@@ -16,14 +16,15 @@ const KeywordItem: React.FC<KeywordItemProps> = ({ keyword, onEditMessage }) => 
   const { removeKeyword, updateKeyword } = useKeywords();
 
   const handleEditSave = () => {
-    // Only update if the keyword has changed
+    if (editValue.trim() === '') {
+      toast.error("Keyword cannot be empty");
+      return;
+    }
+    
     if (editValue !== keyword) {
       updateKeyword(keyword, editValue);
-      // We'll check if the values are the same in the context function instead
-      setIsEditing(false);
-    } else {
-      setIsEditing(false);
     }
+    setIsEditing(false);
   };
 
   const handleCancel = () => {

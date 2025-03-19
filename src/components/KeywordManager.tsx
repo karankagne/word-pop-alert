@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, 
   CardHeader, 
@@ -23,19 +23,24 @@ const KeywordManager: React.FC<KeywordManagerProps> = ({ keywords, setKeywords }
   const [selectedKeyword, setSelectedKeyword] = useState("");
   const keywordContext = useKeywords();
 
-  // Sync keywords from props with context
-  React.useEffect(() => {
-    if (keywords !== keywordContext.keywords) {
+  // Only sync from props to context on initial mount
+  useEffect(() => {
+    if (keywords.length > 0) {
       keywordContext.setKeywords(keywords);
     }
-  }, [keywords, keywordContext]);
+    // This effect should only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Sync keywords from context back to props
-  React.useEffect(() => {
-    if (keywordContext.keywords !== keywords) {
+  // Sync from context to props only when context keywords change
+  useEffect(() => {
+    // Prevent unnecessary updates by checking if arrays are different
+    if (JSON.stringify(keywordContext.keywords) !== JSON.stringify(keywords)) {
       setKeywords(keywordContext.keywords);
     }
-  }, [keywordContext.keywords, setKeywords]);
+    // Only depend on keywordContext.keywords
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keywordContext.keywords]);
 
   const openMessageDialog = (keyword: string) => {
     setSelectedKeyword(keyword);
