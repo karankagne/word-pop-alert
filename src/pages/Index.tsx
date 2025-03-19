@@ -4,6 +4,7 @@ import KeywordManager from "@/components/KeywordManager";
 import NotificationDemo from "@/components/NotificationDemo";
 import ExtensionInfo from "@/components/ExtensionInfo";
 import { Separator } from "@/components/ui/separator";
+import { HeartCrack } from "lucide-react";
 
 const Index = () => {
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -25,15 +26,16 @@ const Index = () => {
       <div className="container px-4 py-8 mx-auto max-w-4xl">
         <header className="mb-8 text-center">
           <div className="inline-block mb-2">
-            <span className="text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full">
-              Chrome Extension
+            <span className="text-xs font-medium bg-pink-500/10 text-pink-500 px-3 py-1 rounded-full">
+              Breakup Support Tool
             </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-medium tracking-tight mb-3">
-            Word<span className="text-primary">Pop</span> Alert
+          <h1 className="text-4xl md:text-5xl font-medium tracking-tight mb-3 flex items-center justify-center gap-3">
+            <HeartCrack className="h-8 w-8 text-pink-500" />
+            <span>Breakup <span className="text-pink-500">Buddy</span></span>
           </h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Get elegant, minimal notifications when specific words appear on your screen
+            Helps you avoid content about your ex during the healing process
           </p>
         </header>
 
@@ -53,8 +55,8 @@ const Index = () => {
         <Separator className="my-8" />
         
         <footer className="text-center text-sm text-muted-foreground pb-8">
-          <p>&copy; {new Date().getFullYear()} WordPop Alert. All rights reserved.</p>
-          <p className="text-xs mt-1">Designed for Chrome and chromium-based browsers.</p>
+          <p>&copy; {new Date().getFullYear()} Breakup Buddy. All rights reserved.</p>
+          <p className="text-xs mt-1">Remember, healing takes time.</p>
         </footer>
       </div>
     </div>

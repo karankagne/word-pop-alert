@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Lightbulb } from "lucide-react";
+import { HeartCrack } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface NotificationDemoProps {
@@ -38,18 +38,18 @@ const NotificationDemo: React.FC<NotificationDemoProps> = ({ keywords }) => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Lightbulb className="h-5 w-5 text-yellow-500" />
-          Test Notifications
+          <HeartCrack className="h-5 w-5 text-pink-500" />
+          Test Notification
         </CardTitle>
         <CardDescription>
-          Preview how your alert will appear when keywords are detected
+          Preview how alerts will appear when you encounter content about your ex
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
         {keywords.length === 0 ? (
           <div className="bg-muted/50 p-4 rounded-lg text-center text-muted-foreground">
-            Add keywords to test notifications
+            Add names or keywords related to your ex to test notifications
           </div>
         ) : (
           <div className="space-y-4">
@@ -73,11 +73,11 @@ const NotificationDemo: React.FC<NotificationDemoProps> = ({ keywords }) => {
             </div>
 
             <Button 
-              className="w-full" 
+              className="w-full bg-pink-500 hover:bg-pink-600" 
               onClick={handleTest}
               disabled={!selectedKeyword}
             >
-              Test Full-Screen Alert
+              Test Breakup Alert
             </Button>
           </div>
         )}
@@ -85,7 +85,7 @@ const NotificationDemo: React.FC<NotificationDemoProps> = ({ keywords }) => {
       
       <CardFooter className="text-sm text-muted-foreground">
         <p>
-          These alerts will appear when the extension detects your keywords
+          These alerts will appear when content about your ex is detected
         </p>
       </CardFooter>
 
@@ -95,23 +95,33 @@ const NotificationDemo: React.FC<NotificationDemoProps> = ({ keywords }) => {
           <div className="flex flex-col items-center justify-center w-full h-full bg-black/90 backdrop-blur-md rounded-lg p-6">
             <div className="max-w-2xl w-full bg-background/10 border border-white/10 rounded-2xl p-8 text-center">
               <div className="mb-4 flex justify-center items-center">
-                <div className="h-3 w-3 rounded-full bg-primary mr-3 animate-pulse"></div>
-                <h2 className="text-2xl font-semibold text-white">WordPop Alert</h2>
+                <div className="h-3 w-3 rounded-full bg-pink-500 mr-3 animate-pulse"></div>
+                <h2 className="text-2xl font-semibold text-white">Breakup Buddy</h2>
               </div>
               
               <h3 className="text-3xl font-bold my-6 text-white">{selectedKeyword}</h3>
               
               <p className="text-xl mb-8 text-white/90">
-                {customMessages[selectedKeyword] || `You've spotted "${selectedKeyword}" on this page!`}
+                {customMessages[selectedKeyword] || `Remember: focusing on "${selectedKeyword}" right now might not help your healing process.`}
               </p>
               
-              <Button 
-                size="lg"
-                onClick={() => setShowOverlay(false)}
-                className="bg-primary/80 hover:bg-primary text-white font-medium px-6 py-3 text-lg"
-              >
-                Continue Browsing
-              </Button>
+              <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
+                <Button 
+                  size="lg"
+                  onClick={() => setShowOverlay(false)}
+                  className="bg-pink-500/80 hover:bg-pink-500 text-white font-medium"
+                >
+                  Continue Anyway
+                </Button>
+                <Button 
+                  size="lg"
+                  onClick={() => setShowOverlay(false)}
+                  variant="outline"
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+                >
+                  Leave This Page
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

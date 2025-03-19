@@ -1,9 +1,9 @@
 
 {
   "manifest_version": 3,
-  "name": "WordPop Alert",
+  "name": "Breakup Buddy",
   "version": "1.0.0",
-  "description": "Get elegant notifications when specific words appear on your screen",
+  "description": "Helps you avoid content about your ex during the healing process",
   "icons": {
     "16": "icon-16.png",
     "48": "icon-48.png",

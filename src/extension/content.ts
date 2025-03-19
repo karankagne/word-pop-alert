@@ -26,7 +26,7 @@ function loadKeywords() {
       // Initialize default custom messages if not set
       customMessages = {};
       keywords.forEach(keyword => {
-        customMessages[keyword] = `You've spotted "${keyword}" on this page!`;
+        customMessages[keyword] = `Remember: focusing on "${keyword}" right now might not help your healing process.`;
       });
       localStorage.setItem("wordPopCustomMessages", JSON.stringify(customMessages));
     }
@@ -66,7 +66,7 @@ function scanPageForKeywords() {
 // Create and show a full-screen notification
 function showFullScreenNotification(keyword: string) {
   // Get custom message for this keyword or use default
-  const customMessage = customMessages[keyword] || `Detected "${keyword}" on this page!`;
+  const customMessage = customMessages[keyword] || `Detected "${keyword}" on this page. Remember to prioritize your healing.`;
   
   // Create overlay container
   const overlayElement = document.createElement("div");
@@ -98,12 +98,15 @@ function showFullScreenNotification(keyword: string) {
   
   contentElement.innerHTML = `
     <div style="margin-bottom: 1rem; display: flex; justify-content: center; align-items: center;">
-      <div style="height: 12px; width: 12px; border-radius: 50%; background-color: #3b82f6; margin-right: 12px; animation: pulse 1.5s infinite;"></div>
-      <h2 style="font-size: 24px; font-weight: 600; margin: 0;">WordPop Alert</h2>
+      <div style="height: 12px; width: 12px; border-radius: 50%; background-color: #ec4899; margin-right: 12px; animation: pulse 1.5s infinite;"></div>
+      <h2 style="font-size: 24px; font-weight: 600; margin: 0;">Breakup Buddy</h2>
     </div>
     <h3 style="font-size: 28px; font-weight: 700; margin: 1rem 0; color: #f0f0f0;">${keyword}</h3>
     <p style="font-size: 18px; margin: 1rem 0 2rem; line-height: 1.6;">${customMessage}</p>
-    <button id="close-wordpop" style="background-color: rgba(59, 130, 246, 0.8); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Continue Browsing</button>
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; margin: 0 auto;">
+      <button id="close-wordpop" style="background-color: rgba(236, 72, 153, 0.8); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Continue Anyway</button>
+      <button id="leave-page" style="background-color: rgba(255, 255, 255, 0.15); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Leave This Page</button>
+    </div>
   `;
   
   overlayElement.appendChild(contentElement);
@@ -124,7 +127,11 @@ function showFullScreenNotification(keyword: string) {
       50% { opacity: 0.7; transform: scale(1.1); }
     }
     #close-wordpop:hover {
-      background-color: rgba(59, 130, 246, 1);
+      background-color: rgba(236, 72, 153, 1);
+      transform: translateY(-2px);
+    }
+    #leave-page:hover {
+      background-color: rgba(255, 255, 255, 0.25);
       transform: translateY(-2px);
     }
   `;
@@ -141,6 +148,12 @@ function showFullScreenNotification(keyword: string) {
         document.body.removeChild(overlayElement);
       }
     }, 300);
+  });
+  
+  // Add leave page handler
+  const leaveButton = document.getElementById("leave-page");
+  leaveButton?.addEventListener("click", () => {
+    window.history.back(); // Go back to previous page
   });
 }
 
