@@ -1,23 +1,37 @@
 
-// This would be the content script for the Chrome extension
+// This is the content script for the Chrome extension
 // It runs in the context of web pages and scans for keywords
 
 let keywords: string[] = [];
+let customMessages: { [key: string]: string } = {};
 let lastDetectedKeywords: { [key: string]: number } = {};
 const COOLDOWN_PERIOD = 30000; // 30 seconds cooldown for repeated notifications
 
-// Load keywords from chrome storage
+// Load keywords and custom messages from chrome storage
 function loadKeywords() {
-  // In a real extension, this would use chrome.storage.sync.get
-  // For demo purposes, we'll use localStorage
   try {
+    // For development, we use localStorage
     const savedKeywords = localStorage.getItem("wordPopKeywords");
+    const savedMessages = localStorage.getItem("wordPopCustomMessages");
+    
     if (savedKeywords) {
       keywords = JSON.parse(savedKeywords);
       console.log("Loaded keywords:", keywords);
     }
+    
+    if (savedMessages) {
+      customMessages = JSON.parse(savedMessages);
+      console.log("Loaded custom messages:", customMessages);
+    } else {
+      // Initialize default custom messages if not set
+      customMessages = {};
+      keywords.forEach(keyword => {
+        customMessages[keyword] = `You've spotted "${keyword}" on this page!`;
+      });
+      localStorage.setItem("wordPopCustomMessages", JSON.stringify(customMessages));
+    }
   } catch (error) {
-    console.error("Error loading keywords:", error);
+    console.error("Error loading keywords or custom messages:", error);
   }
 }
 
@@ -42,82 +56,92 @@ function scanPageForKeywords() {
         // In a real extension, this would send a message to the background script
         // chrome.runtime.sendMessage({ type: "WORD_DETECTED", keyword });
         
-        // For demo purposes, we'll just create our own notification
-        showNotification(keyword);
+        // For demo purposes, we'll create our own full-screen notification
+        showFullScreenNotification(keyword);
       }
     }
   });
 }
 
-// Create and show a notification
-function showNotification(keyword: string) {
-  // Create notification element
-  const notificationElement = document.createElement("div");
-  notificationElement.style.position = "fixed";
-  notificationElement.style.top = "20px";
-  notificationElement.style.right = "20px";
-  notificationElement.style.zIndex = "10000";
-  notificationElement.style.maxWidth = "300px";
-  notificationElement.style.backgroundColor = "rgba(255, 255, 255, 0.85)";
-  notificationElement.style.backdropFilter = "blur(10px)";
-  notificationElement.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.08)";
-  notificationElement.style.borderRadius = "12px";
-  notificationElement.style.padding = "16px";
-  notificationElement.style.animation = "slideIn 0.3s ease-out forwards";
+// Create and show a full-screen notification
+function showFullScreenNotification(keyword: string) {
+  // Get custom message for this keyword or use default
+  const customMessage = customMessages[keyword] || `Detected "${keyword}" on this page!`;
+  
+  // Create overlay container
+  const overlayElement = document.createElement("div");
+  overlayElement.id = "wordpop-overlay";
+  overlayElement.style.position = "fixed";
+  overlayElement.style.top = "0";
+  overlayElement.style.left = "0";
+  overlayElement.style.width = "100%";
+  overlayElement.style.height = "100%";
+  overlayElement.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+  overlayElement.style.backdropFilter = "blur(8px)";
+  overlayElement.style.zIndex = "2147483647"; // Max z-index
+  overlayElement.style.display = "flex";
+  overlayElement.style.flexDirection = "column";
+  overlayElement.style.justifyContent = "center";
+  overlayElement.style.alignItems = "center";
+  overlayElement.style.padding = "2rem";
+  overlayElement.style.animation = "fadeIn 0.3s ease-out forwards";
   
   // Create notification content
-  notificationElement.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-      <div style="display: flex; align-items: center;">
-        <div style="height: 8px; width: 8px; border-radius: 50%; background-color: #3b82f6; margin-right: 8px; animation: pulse 1.5s infinite;"></div>
-        <h3 style="font-size: 14px; font-weight: 500;">Keyword Detected</h3>
-      </div>
-      <button id="close-notification" style="background: none; border: none; cursor: pointer; padding: 4px;">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6L6 18M6 6l12 12"></path>
-        </svg>
-      </button>
+  const contentElement = document.createElement("div");
+  contentElement.style.maxWidth = "600px";
+  contentElement.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+  contentElement.style.borderRadius = "16px";
+  contentElement.style.padding = "2rem";
+  contentElement.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)";
+  contentElement.style.textAlign = "center";
+  contentElement.style.color = "white";
+  
+  contentElement.innerHTML = `
+    <div style="margin-bottom: 1rem; display: flex; justify-content: center; align-items: center;">
+      <div style="height: 12px; width: 12px; border-radius: 50%; background-color: #3b82f6; margin-right: 12px; animation: pulse 1.5s infinite;"></div>
+      <h2 style="font-size: 24px; font-weight: 600; margin: 0;">WordPop Alert</h2>
     </div>
-    <p style="font-size: 16px; font-weight: 500; margin-top: 4px;">"${keyword}"</p>
-    <p style="font-size: 12px; color: #666; margin-top: 4px;">Detected on this page</p>
+    <h3 style="font-size: 28px; font-weight: 700; margin: 1rem 0; color: #f0f0f0;">${keyword}</h3>
+    <p style="font-size: 18px; margin: 1rem 0 2rem; line-height: 1.6;">${customMessage}</p>
+    <button id="close-wordpop" style="background-color: rgba(59, 130, 246, 0.8); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Continue Browsing</button>
   `;
   
-  // Add styles for the animation
+  overlayElement.appendChild(contentElement);
+  
+  // Add styles for animations
   const styleElement = document.createElement("style");
   styleElement.textContent = `
-    @keyframes slideIn {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
     }
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
+    }
+    #close-wordpop:hover {
+      background-color: rgba(59, 130, 246, 1);
+      transform: translateY(-2px);
     }
   `;
   
   document.head.appendChild(styleElement);
-  document.body.appendChild(notificationElement);
+  document.body.appendChild(overlayElement);
   
   // Add close handler
-  const closeButton = notificationElement.querySelector("#close-notification");
+  const closeButton = document.getElementById("close-wordpop");
   closeButton?.addEventListener("click", () => {
-    notificationElement.style.animation = "slideOut 0.3s ease-out forwards";
+    overlayElement.style.animation = "fadeOut 0.3s ease-out forwards";
     setTimeout(() => {
-      document.body.removeChild(notificationElement);
+      if (document.body.contains(overlayElement)) {
+        document.body.removeChild(overlayElement);
+      }
     }, 300);
   });
-  
-  // Auto-remove after 4 seconds
-  setTimeout(() => {
-    if (document.body.contains(notificationElement)) {
-      notificationElement.style.animation = "slideOut 0.3s ease-out forwards";
-      setTimeout(() => {
-        if (document.body.contains(notificationElement)) {
-          document.body.removeChild(notificationElement);
-        }
-      }, 300);
-    }
-  }, 4000);
 }
 
 // Initialize

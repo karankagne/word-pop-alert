@@ -1,5 +1,5 @@
 
-// This would be the background script for the Chrome extension
+// This is the background script for the Chrome extension
 // It runs in the background and manages the extension's state
 
 // Listen for installation or update
@@ -7,9 +7,13 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log("WordPop Alert extension installed or updated");
   
   // Initialize default settings if not already set
-  chrome.storage.sync.get(["wordPopKeywords"], (result) => {
+  chrome.storage.sync.get(["wordPopKeywords", "wordPopCustomMessages"], (result) => {
     if (!result.wordPopKeywords) {
       chrome.storage.sync.set({ wordPopKeywords: [] });
+    }
+    
+    if (!result.wordPopCustomMessages) {
+      chrome.storage.sync.set({ wordPopCustomMessages: {} });
     }
   });
 });

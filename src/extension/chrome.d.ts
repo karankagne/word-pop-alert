@@ -1,0 +1,30 @@
+
+// Type definitions for Chrome extension API
+declare namespace chrome {
+  namespace runtime {
+    function onInstalled: {
+      addListener(callback: () => void): void;
+    };
+    function onMessage: {
+      addListener(
+        callback: (
+          message: any,
+          sender: { tab?: { url: string } },
+          sendResponse: (response?: any) => void
+        ) => boolean | void
+      ): void;
+    };
+    function sendMessage(message: any, callback?: (response: any) => void): void;
+  }
+  
+  namespace storage {
+    namespace sync {
+      function get(keys: string | string[] | object | null, callback: (items: { [key: string]: any }) => void): void;
+      function set(items: object, callback?: () => void): void;
+    }
+  }
+  
+  namespace notifications {
+    function create(options: any): void;
+  }
+}
