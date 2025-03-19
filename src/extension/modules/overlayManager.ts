@@ -5,8 +5,13 @@
  * Creates and displays the avoidance screen overlay
  * @param detectedKeywords Array of detected keywords to display
  * @param avoidanceMessage The main message to display
+ * @param onClose Callback to execute when the overlay is closed
  */
-export function showAvoidanceScreen(detectedKeywords: string[] = [], avoidanceMessage: string): void {
+export function showAvoidanceScreen(
+  detectedKeywords: string[] = [], 
+  avoidanceMessage: string,
+  onClose?: () => void
+): void {
   // Remove any existing overlay first
   const existingOverlay = document.getElementById("wordpop-overlay");
   if (existingOverlay) {
@@ -68,7 +73,7 @@ export function showAvoidanceScreen(detectedKeywords: string[] = [], avoidanceMe
   document.body.appendChild(overlayElement);
   
   // Add event listeners
-  attachOverlayEventListeners(overlayElement);
+  attachOverlayEventListeners(overlayElement, onClose);
 }
 
 /**
@@ -115,7 +120,7 @@ function addOverlayStyles(): void {
 /**
  * Attach event listeners to overlay buttons
  */
-function attachOverlayEventListeners(overlayElement: HTMLElement): void {
+function attachOverlayEventListeners(overlayElement: HTMLElement, onClose?: () => void): void {
   // Add close handler
   const closeButton = document.getElementById("close-wordpop");
   closeButton?.addEventListener("click", () => {
@@ -124,12 +129,20 @@ function attachOverlayEventListeners(overlayElement: HTMLElement): void {
       if (document.body.contains(overlayElement)) {
         document.body.removeChild(overlayElement);
       }
+      // Execute onClose callback if provided
+      if (onClose) {
+        onClose();
+      }
     }, 300);
   });
   
   // Add leave page handler
   const leaveButton = document.getElementById("leave-page");
   leaveButton?.addEventListener("click", () => {
+    // Execute onClose callback if provided
+    if (onClose) {
+      onClose();
+    }
     window.history.back(); // Go back to previous page
   });
 }

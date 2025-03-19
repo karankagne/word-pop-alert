@@ -8,10 +8,18 @@ import { showAvoidanceScreen, addTestButton } from './modules/overlayManager';
 // Log for debugging
 console.log("Breakup Buddy: Content script loaded and running");
 
+// Add global state to track if we're currently showing the overlay
+let isOverlayShowing = false;
+
 /**
  * Scan the page for keywords
  */
 function scanPageForKeywords(): void {
+  // Don't scan if the overlay is already showing
+  if (isOverlayShowing) {
+    return;
+  }
+  
   // Get the text content of the page including title, URL and body
   const pageText = document.title + ' ' + window.location.href + ' ' + document.body.innerText;
   
@@ -21,7 +29,12 @@ function scanPageForKeywords(): void {
   // If we found keywords, show the avoidance screen
   if (foundKeywords.length > 0) {
     console.log("Breakup Buddy: Showing avoidance screen for keywords:", foundKeywords);
-    showAvoidanceScreen(foundKeywords, getAvoidanceMessage());
+    isOverlayShowing = true;
+    showAvoidanceScreen(
+      foundKeywords, 
+      getAvoidanceMessage(),
+      () => { isOverlayShowing = false; } // callback when overlay closes
+    );
   } else {
     console.log("Breakup Buddy: No keywords found on this page");
   }
@@ -91,7 +104,12 @@ function initializeContentScript(): void {
     console.log('Breakup Buddy: Development mode detected - adding test functionality');
     
     addTestButton(() => {
-      showAvoidanceScreen(['test keyword'], getAvoidanceMessage());
+      isOverlayShowing = true;
+      showAvoidanceScreen(
+        ['test keyword'], 
+        getAvoidanceMessage(),
+        () => { isOverlayShowing = false; }
+      );
     });
   }
 }

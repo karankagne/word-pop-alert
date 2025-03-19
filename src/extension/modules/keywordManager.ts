@@ -6,7 +6,7 @@ let keywords: string[] = [];
 let customMessages: { [key: string]: string } = {};
 let userAvoidanceMessage: string = "Remember why you're here. Take a deep breath and focus on yourself.";
 let lastDetectedKeywords: { [key: string]: number } = {};
-const COOLDOWN_PERIOD = 30000; // 30 seconds cooldown for repeated notifications
+const COOLDOWN_PERIOD = 10000; // Reduced to 10 seconds for better responsiveness
 
 /**
  * Load keywords, custom messages, and user avoidance message from storage
@@ -69,13 +69,23 @@ function fallbackToLocalStorage(): void {
   const savedAvoidanceMessage = localStorage.getItem("wordPopAvoidanceMessage");
   
   if (savedKeywords) {
-    keywords = JSON.parse(savedKeywords);
-    console.log("Breakup Buddy: Loaded keywords from localStorage:", keywords);
+    try {
+      keywords = JSON.parse(savedKeywords);
+      console.log("Breakup Buddy: Loaded keywords from localStorage:", keywords);
+    } catch (error) {
+      console.error("Breakup Buddy: Error parsing keywords from localStorage", error);
+      keywords = [];
+    }
   }
   
   if (savedMessages) {
-    customMessages = JSON.parse(savedMessages);
-    console.log("Breakup Buddy: Loaded custom messages from localStorage:", customMessages);
+    try {
+      customMessages = JSON.parse(savedMessages);
+      console.log("Breakup Buddy: Loaded custom messages from localStorage:", customMessages);
+    } catch (error) {
+      console.error("Breakup Buddy: Error parsing custom messages from localStorage", error);
+      initializeDefaultMessages();
+    }
   } else {
     // Initialize default custom messages if not set
     initializeDefaultMessages();
@@ -97,7 +107,7 @@ function fallbackToLocalStorage(): void {
  * @returns Array of found keywords
  */
 export function findKeywordsInText(pageText: string): string[] {
-  if (keywords.length === 0) {
+  if (!keywords || keywords.length === 0) {
     console.log("Breakup Buddy: No keywords to scan for");
     return [];
   }
@@ -174,4 +184,11 @@ export function getAvoidanceMessage(): string {
  */
 export function getCustomMessage(keyword: string): string {
   return customMessages[keyword] || `Remember: focusing on "${keyword}" right now might not help your healing process.`;
+}
+
+// Force refresh keywords from storage
+export function refreshKeywords(): Promise<void> {
+  console.log("Breakup Buddy: Force refreshing keywords");
+  lastDetectedKeywords = {}; // Reset cooldown
+  return loadKeywords();
 }
